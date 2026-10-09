@@ -1,0 +1,19 @@
+[package]
+name = "tui-gizmos"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Graphical gizmos for Ratatui — braille speedometers and friends"
+keywords = ["tui", "terminal", "ratatui", "gauge", "widget"]
+categories = ["command-line-interface", "visualization", "rendering"]
+readme = "README.md"
+repository = "https://github.com/daig/tui-gizmos"
+
+[dependencies]
+ratatui = { version = "0.30", default-features = false }
+
+[dev-dependencies]
+color-eyre = "0.6"
+crossterm = "0.29"
+ratatui = { version = "0.30", features = ["crossterm"] }
