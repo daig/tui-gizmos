@@ -9,6 +9,7 @@ keywords = ["tui", "terminal", "ratatui", "gauge", "widget"]
 categories = ["command-line-interface", "visualization", "rendering"]
 readme = "README.md"
 repository = "https://github.com/daig/tui-gizmos"
+exclude = ["assets"]
 
 [dependencies]
 ratatui = { version = "0.30", default-features = false }

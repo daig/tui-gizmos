@@ -3,11 +3,13 @@
 Graphical gizmos for [Ratatui](https://ratatui.rs): small, stateless widgets
 that turn numbers into something you can read at a glance.
 
+![Speedometer, MiniSpeedometer and ArcSpeedometer following a download rate](assets/gallery.gif)
+
 | Gizmo | What it shows |
 |-------|---------------|
 | `Speedometer` | Braille dial with needle, gradient arc, ticks, peak marker and readout |
 | `ArcSpeedometer` | Two-row lit arc with the readout inside it, no needle |
-| `MiniSpeedometer` | Three-line half dial with readout, label and detail alongside |
+| `MiniSpeedometer` | Three-line dial with a readout or labelled gradations |
 
 Each gizmo shows one thing. A speedometer displays a speed and nothing
 else — no captions, file names or progress — so it composes with whatever
@@ -20,24 +22,7 @@ labelled, so the rough speed reads off the dial at a glance. The needle
 stops just short of the label it points at, so labels are never covered.
 Often that's precision enough — `.no_readout()` drops the readout entirely.
 
-```
-               ⢀⣀⣤⣴⣶⣶⠿⠿⠿⠿⠿⠿⣶⣶⣦⣤⣀⡀
-            ⣀⣴⣾⠿⠛⠉⠁     ⠇    ⠈⠉⠛⠿⣷⣦⣀
-         ⢀⣴⣾⠟⠉         1M         ⠉⠻⣷⣦⡀
-       ⢀⣴⡿⠋⠘⠆                      ⠰⠃⠙⢿⣦⡀
-      ⢠⣾⠟    100k               10M    ⠻⣷⡄
-     ⣰⣿⠃                                ⠘⣿⣆
-    ⢰⣿⠃                                  ⠘⠿⠂
-   ⢀⣿⠇                              ⣀⡠⠴⠒⠉⠁⠸⣿⡀
-   ⢸⣿⣀⡀                        ⣀⡠⠴⠒⠉⠁    ⢀⣀⣿⡇
-   ⣿⡇  10k                ⣀⡠⠴⠒⠉⠁     100M  ⢸⣿
-   ⣿⡇                  ⠰⠖⠉⠁                ⢸⣿
-   ⣿⡇              49.6 MB/s               ⢸⣿
-   ⢸⣿                                      ⣿⡇
-   ⠈⣿⡆                                    ⢰⣿⠁
-    ⠸⣿⡄ ⡀1k                          1G⢀ ⢠⣿⠇
-     ⠹⠛⠈⠁                              ⠈⠁⠛⠏
-```
+![A large labelled speedometer reading 49.6 MB/s](assets/speedometer.png)
 
 ```rust
 use tui_gizmos::Speedometer;
@@ -70,23 +55,12 @@ get labels. Too small for a dial, it falls back to the readout text.
 
 ## MiniSpeedometer
 
-Three lines tall, in one of two styles. With a precise readout set into the
-dial, 14 columns wide:
+Three lines tall, in one of two styles: a precise readout set into the dial
+(top row, 14 columns), or with `.no_readout()`, labelled gradations (middle
+row, 21 columns) — roughly "between 10M and 1G", which is usually all you
+need. The bottom row is the compact variant below.
 
-```
- ⣠⡴⠶⠞⠛⠛⠛⠛⠳⠶⢦⣄
-⣾⠋    ⢠⡤⠤⠤⠖⠒⠉⣷
-⠙⠓ 49.6 MB/s⠚⠋
-```
-
-Or, with `.no_readout()`, labelled gradations, 21 columns wide — roughly
-"between 10M and 1G", which is usually all you need:
-
-```
-   ⣀⣤⡶⠶⠞⠛⠛⠛⠛⠛⠳⠶⢦⣤⣀
-⢀⣴⠟⠉ 100k    10M⠈⠉⠳⣄
-⣾⠁1k      ⣄⠤⠖⠚⠉  1G⢹⡇
-```
+![MiniSpeedometer at 320 kB/s, 49.6 MB/s and 610 MB/s in each style](assets/mini.png)
 
 ```rust
 MiniSpeedometer::bytes_per_sec(rate).peak(peak)                // readout
@@ -110,12 +84,6 @@ for text and give the needle travel in 12 dots of height; `sweep` and
 For a narrower readout, a shorter format and a rounder dial fit in 10
 columns:
 
-```
-⢀⣴⠶⠛⠛⠛⠶⣦⡀
-⣾⠁  ⣤⠤⠖⠈⠁
-⠙⠂ 49.6M⠛
-```
-
 ```rust
 MiniSpeedometer::bytes_per_sec(rate).readout_format(format::si).aspect(1.3)
 ```
@@ -125,13 +93,11 @@ MiniSpeedometer::bytes_per_sec(rate).readout_format(format::si).aspect(1.3)
 No needle: the value is how far the arc is lit, and with the hub gone the
 readout moves inside the arc. Two lines, 15 columns:
 
-```
- ⣀⣤⠶⠶⠛⠛⠛⠛⠛⠶⠶⡤⣀
-⣼⠋ 49.6 MB/s ⠙⣧
-```
+![ArcSpeedometer at four rates, plus 3-row arcs with custom readouts](assets/arc.png)
 
 ```rust
 frame.render_widget(ArcSpeedometer::bytes_per_sec(rate).peak(peak), area); // 2 rows
+frame.render_widget(ArcSpeedometer::new(cpu).readout(format!("{cpu:.0}%")), area);
 ```
 
 A flat-bottomed 180° arc fills both rows, and the readout is centred on the
@@ -140,7 +106,7 @@ that keeps every `bytes_per_sec` readout clear of the arc. Taller areas
 scale the arc up; at one row it's just the readout. It shares the colour,
 scale, range, peak and readout options of the other speedometers.
 
-### Motion
+## Motion
 
 Widgets are stateless, so a raw signal makes a jittery needle. Keep a
 `Damped` (exponential easing) and a `PeakHold` (hold-then-decay peak) in your
@@ -153,10 +119,20 @@ let peak = app.peak.update(rate, dt);     // PeakHold::new(Duration::from_secs(2
 
 ## Examples
 
+![The simulate example: a graduated dial and an arc following a simulated download](assets/simulate.gif)
+
 ```sh
 cargo run --example speedometer   # dashboard: log, half-dial, 300° and size ladder
 cargo run --example download      # inline mini dials, readout vs gradations
 cargo run --example simulate      # realistic download behaviour: graduated dial + arc
+```
+
+The images in this README are rendered from the widgets themselves:
+
+```sh
+GIZMO_RECORD=assets cargo test --test record -- --ignored
+GIZMO_RECORD=assets cargo test --example simulate -- --ignored
+uv run assets/render.py assets/*.frames   # needs DejaVu Sans Mono
 ```
 
 ## Design notes
@@ -167,4 +143,4 @@ cargo run --example simulate      # realistic download behaviour: graduated dial
   per-cell colour conflicts by showing only the topmost layer, which keeps the
   fill/track boundary accurate to the dot. New gizmos should reuse it.
 - Dial painting (`src/dial.rs`) and the shared builder methods
-  (`src/macros.rs`) are common to both speedometers.
+  (`src/macros.rs`) are shared by all the speedometers.

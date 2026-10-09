@@ -385,4 +385,52 @@ mod tests {
             assert!(seen.contains(label), "never saw {label}: {seen:?}");
         }
     }
+
+    /// Frames for `assets/simulate.gif`, in the format of `tests/record.rs`:
+    ///
+    /// GIZMO_RECORD=assets cargo test --example simulate -- --ignored
+    /// uv run assets/render.py assets/simulate.frames
+    #[test]
+    #[ignore = "README recording"]
+    fn record() {
+        use ratatui::{Terminal, backend::TestBackend, style::Modifier};
+        use std::fmt::Write as _;
+
+        let Ok(dir) = std::env::var("GIZMO_RECORD") else { return };
+        let fps = 25.0;
+        let dt = Duration::from_secs_f64(1.0 / fps);
+        let mut app = App {
+            sim: Sim::new(),
+            needle: Damped::new(0.0, Duration::from_millis(200)),
+            peak: PeakHold::new(Duration::from_secs(2), 0.6),
+            reveal: false,
+        };
+        let mut terminal = Terminal::new(TestBackend::new(56, 11)).unwrap();
+        let mut out = String::new();
+        for i in 0..(24.0 * fps) as u32 {
+            // Press space every 8 s: fibre, home wi-fi, mobile 4G.
+            if i > 0 && i % (8.0 * fps) as u32 == 0 {
+                app.sim.next_link();
+            }
+            let frame = terminal.draw(|f| app.draw(f)).unwrap();
+            let buf = frame.buffer;
+            let w = buf.area.width;
+            writeln!(out, "frame\t{w}\t{}", buf.area.height).unwrap();
+            for (i, cell) in buf.content.iter().enumerate().filter(|(_, c)| c.symbol() != " ") {
+                let flags = [(Modifier::BOLD, 'b'), (Modifier::ITALIC, 'i')]
+                    .iter()
+                    .filter(|(m, _)| cell.modifier.contains(*m))
+                    .map(|(_, c)| *c)
+                    .collect::<String>();
+                let i = i as u16;
+                writeln!(out, "{}\t{}\t{}\t{:?}\t{flags}", i % w, i / w, cell.symbol(), cell.fg).unwrap();
+            }
+            for _ in 0..8 {
+                app.sim.step(dt.as_secs_f64() / 8.0);
+            }
+            let rate = app.needle.update(app.sim.rate, dt);
+            app.peak.update(rate, dt);
+        }
+        std::fs::write(format!("{dir}/simulate.frames"), out).unwrap();
+    }
 }
