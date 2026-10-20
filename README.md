@@ -15,6 +15,9 @@ Each gizmo shows one thing. A speedometer displays a speed and nothing
 else — no captions, file names or progress — so it composes with whatever
 else you put around it (a progress bar underneath, a title in a `Block`).
 
+Also in this repo: [`tui-stipple`](stipple/), which plays GIFs and video as
+braille stipple art.
+
 ## Speedometer
 
 Replaces text like `49.6MB/s` with a dial. Once there's room, every tick is
@@ -133,6 +136,18 @@ The images in this README are rendered from the widgets themselves:
 GIZMO_RECORD=assets cargo test --test record -- --ignored
 GIZMO_RECORD=assets cargo test --example simulate -- --ignored
 uv run assets/render.py assets/*.frames   # needs DejaVu Sans Mono
+```
+
+## tui-stipple
+
+A separate crate in [`stipple/`](stipple/): a widget and a terminal player
+that turn any GIF or video into one texture, a dark posterised base under a
+screen of pure-primary braille dots.
+
+![An abstract plasma loop rendered as stipple art](stipple/assets/plasma.gif)
+
+```sh
+cargo run -p tui-stipple --release -- loop.gif   # needs ffmpeg
 ```
 
 ## Design notes

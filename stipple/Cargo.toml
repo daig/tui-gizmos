@@ -1,0 +1,25 @@
+[package]
+name = "tui-stipple"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "GIFs and video as shimmering braille stipple art: a Ratatui widget and a terminal player"
+keywords = ["tui", "ratatui", "braille", "gif", "terminal"]
+categories = ["command-line-interface", "multimedia::video", "rendering"]
+readme = "README.md"
+repository = "https://github.com/daig/tui-gizmos"
+exclude = ["assets"]
+
+[features]
+default = ["player"]
+# The `stipple` terminal player. It decodes with `ffmpeg`, which must be on PATH.
+player = ["ratatui/crossterm"]
+
+[dependencies]
+ratatui = { version = "0.30", default-features = false }
+
+[[bin]]
+name = "stipple"
+path = "src/bin/stipple/main.rs"
+required-features = ["player"]
